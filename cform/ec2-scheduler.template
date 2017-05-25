@@ -192,7 +192,8 @@
                                         "ec2:DescribeRegions",
                                         "ec2:DescribeInstances",
                                         "cloudwatch:PutMetricData",
-                                        "cloudformation:DescribeStacks"
+                                        "cloudformation:DescribeStacks",
+                                        "kms:CreateGrant"
                                     ],
                                     "Resource": "*"
                                 }
