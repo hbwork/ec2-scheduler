@@ -162,7 +162,6 @@ def lambda_handler(event, context):
                             if daysActive == "all":
                                 isActiveDay = True
                             elif daysActive == "weekdays":
-                                #weekdays = ['mon', 'tue', 'wed', 'thu', 'fri']
                                 if (nowDay in weekdays):
                                     isActiveDay = True
                             else:
