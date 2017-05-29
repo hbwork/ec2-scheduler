@@ -19,6 +19,10 @@ from urllib2 import Request
 from urllib2 import urlopen
 from collections import Counter
 
+# Import re to analyse month day
+import re
+
+
 def putCloudWatchMetric(region, instance_id, instance_state):
     
     cw = boto3.client('cloudwatch')
@@ -83,7 +87,13 @@ def lambda_handler(event, context):
     allRegionDict = {}
     regionsLabelDict = {}
     postDict = {}  
-    
+
+    # Weekdays Interpreter
+    weekdays = ['mon', 'tue', 'wed', 'thu', 'fri']
+
+    # Monthdays Interpreter (1..31)
+    monthdays = re.compile(r'^(0?[1-9]|[12]\d|3[01])$')
+
     for region in awsRegions:
         try:
             # Create connection to the EC2 using Boto3 resources interface
@@ -94,6 +104,9 @@ def lambda_handler(event, context):
             nowMax = datetime.datetime.now() - datetime.timedelta(minutes=59)
             nowMax = nowMax.strftime("%H%M")
             nowDay = datetime.datetime.today().strftime("%a").lower()
+
+            # now Date to support Start/Stop EC2 instance based on Monthly date
+            nowDate = int(datetime.datetime.today().strftime("%d"))
 
             # Declare Lists
             startList = []
@@ -146,34 +159,45 @@ def lambda_handler(event, context):
 
                             isActiveDay = False
 
-                            # Days Interpreter
                             if daysActive == "all":
                                 isActiveDay = True
                             elif daysActive == "weekdays":
-                                weekdays = ['mon', 'tue', 'wed', 'thu', 'fri']
+                                #weekdays = ['mon', 'tue', 'wed', 'thu', 'fri']
                                 if (nowDay in weekdays):
                                     isActiveDay = True
                             else:
                                 daysActive = daysActive.split(",")
                                 for d in daysActive:
-                                    if d.lower() == nowDay:
-                                        isActiveDay = True
+                                    # Week days?
+                                    if ( d.lower() in weekdays):
+                                        if d.lower() == nowDay:
+                                            isActiveDay = True
+                                    # Month days?
+                                    elif monthdays.match(d):
+                                        if int(d) == nowDate:
+                                            isActiveDay = True
 
                             # Append to start list
                             if startTime >= str(nowMax) and startTime <= str(now) and \
                                     isActiveDay == True and state == "stopped":
-                                startList.append(i.instance_id)
-                                print i.instance_id, " added to START list"
-                                if createMetrics == 'enabled':
-                                    putCloudWatchMetric(region['RegionName'], i.instance_id, 1)
+
+                                if i.instance_id not in startList:
+                                    startList.append(i.instance_id)
+                                    print i.instance_id, " added to START list"
+                                    if createMetrics == 'enabled':
+                                        putCloudWatchMetric(region['RegionName'], i.instance_id, 1)
+                                # Instance Id already in startList
 
                             # Append to stop list
                             if stopTime >= str(nowMax) and stopTime <= str(now) and \
                                     isActiveDay == True and state == "running":
-                                stopList.append(i.instance_id)
-                                print i.instance_id, " added to STOP list"
-                                if createMetrics == 'enabled':
-                                    putCloudWatchMetric(region['RegionName'], i.instance_id, 0)
+
+                                if i.instance_id not in stopList:
+                                    stopList.append(i.instance_id)
+                                    print i.instance_id, " added to STOP list"
+                                    if createMetrics == 'enabled':
+                                        putCloudWatchMetric(region['RegionName'], i.instance_id, 0)
+                                # Instance Id already in stopList
 
                             if state == 'running':
                                 runningStateList.append(itype)
