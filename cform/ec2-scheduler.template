@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "(SO0002) - EC2 Scheduler: This template installs an opt-in version of the EC2 Scheduler for automatically starting and stopping EC2 instances.",
+    "Description": "Customized EC2 Scheduler: This template installs an opt-in version of the EC2 Scheduler for automatically starting and stopping EC2 instances.",
     "Parameters": {
         "Schedule": {
             "Description": "Schedule for CWE Scheduled Expression",
@@ -192,7 +192,8 @@
                                         "ec2:DescribeRegions",
                                         "ec2:DescribeInstances",
                                         "cloudwatch:PutMetricData",
-                                        "cloudformation:DescribeStacks"
+                                        "cloudformation:DescribeStacks",
+                                        "kms:CreateGrant"
                                     ],
                                     "Resource": "*"
                                 }
@@ -212,20 +213,10 @@
                         "Arn"
                     ]
                 },
-                "Description": "EC2 Scheduler Lambda function for automatically starting and stopping EC2 instances.",
+                "Description": "EC2 Scheduler Lambda function (supporting weekdays/monthdays) for automatically starting and stopping EC2 instances.",
                 "Code": {
-                    "S3Bucket": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "solutions-",
-                                {
-                                    "Ref": "AWS::Region"
-                                }
-                            ]
-                        ]
-                    },
-                    "S3Key": "ec2-scheduler/v2/ec2-scheduler.zip"
+                    "S3Bucket": "dcp-install",
+                    "S3Key": "ec2-scheduler.zip"
                 },
                 "Runtime": "python2.7",
                 "Timeout": "300"
