@@ -94,6 +94,9 @@ def lambda_handler(event, context):
     # Monthdays Interpreter (1..31)
     monthdays = re.compile(r'^(0?[1-9]|[12]\d|3[01])$')
 
+    # nth weekdays Interpreter
+    nthweekdays=re.compile('\w{3}/[1..4]')
+
     for region in awsRegions:
         try:
             # Create connection to the EC2 using Boto3 resources interface

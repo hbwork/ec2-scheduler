@@ -21,7 +21,11 @@ Changes:
 How to deploy:
   Deploy CloudFromation stack from CF template cform\ec2-scheduler.template by following document https://s3.amazonaws.com/solutions-reference/ec2-scheduler/latest/ec2-scheduler.pdf or http://docs.aws.amazon.com/solutions/latest/ec2-scheduler/deployment.html
 
-  Note: python code was uploaded to s3://dcp-install
+Note: 
+  - python code was uploaded to s3://dcp-install
+  - nth weekdays format: weekday/nthweek
+    weekday(case insensitive): mon, tue,wed,thu,fri,sat,sun 
+    nthweek: 1,2,3,4
 
 Customzied Tags:
   800;1800;utc;all	The instance will start at 0800 hours and stop at 1800 hours on all days of the week.
@@ -33,5 +37,5 @@ Customzied Tags:
   0815;1745;utc;wed,thu	The instance will start at 0815 hours and stop at 1745 hours on Wednesday and Thursday only.
   none;1800;utc;weekdays	The instance stop at 1800 hours Monday through Friday. The instance will need to be started manually.
   0800;none;utc;weekdays	The instance start at 0800 hours Monday through Friday. The instance will need to be stopped manually.
-  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturyday
+  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday
 
