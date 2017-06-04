@@ -94,6 +94,9 @@ def lambda_handler(event, context):
     # Monthdays Interpreter (1..31)
     monthdays = re.compile(r'^(0?[1-9]|[12]\d|3[01])$')
 
+    # nth weekdays Interpreter
+    nthweekdays=re.compile('\w{3}/[1..4]')
+
     for region in awsRegions:
         try:
             # Create connection to the EC2 using Boto3 resources interface
@@ -167,14 +170,22 @@ def lambda_handler(event, context):
                             else:
                                 daysActive = daysActive.split(",")
                                 for d in daysActive:
-                                    # Week days?
-                                    if ( d.lower() in weekdays):
-                                        if d.lower() == nowDay:
-                                            isActiveDay = True
+                                    # mon, tue,wed,thu,fri,sat,sun ?
+                                    if d.lower() == nowDay:
+                                       isActiveDay = True
                                     # Month days?
                                     elif monthdays.match(d):
                                         if int(d) == nowDate:
                                             isActiveDay = True
+                                    # mon/1 first Monday of the month
+                                    # tue/2 second Tuesday of the month
+                                    # Fri/3 third Friday of the month
+                                    # sat/4 forth Saturday of the month
+                                    elif nthweekdays.match(d):
+                                        (weekday,nthweek) = d.split("/")
+
+                                        if (weekday.lower() == nowDay) and ( nowDate >= (int(nthweek) * 7 - 6)) and (nowDate <= (int(nthweek) * 7)): 
+                                           isActiveDay = True
 
                             # Append to start list
                             if startTime >= str(nowMax) and startTime <= str(now) and \
