@@ -1,11 +1,11 @@
 Author: Eric Ho (eric.ho@datacom.com.au)
 Date: May 29, 2017
 Changes:
-- code/ec2-scheduler.py: monthly and/or weekdays are supported in EC2 instance tags
+- code/ec2-scheduler.py: month-days and/or weekdays are supported in EC2 instance tags
   for example:
-  2230;0725;utc;mon,fri
-  2230;0725;utc;weekdays
-  none;1700;utc;mon,fri,1,31
+  2230;0725;utc;mon,fri – every Monday and Friday
+  2230;0725;utc;weekdays – every weekday from Monday to Friday
+  none;1700;utc;mon,fri,1,31  - every Monday, Friday, or 1st or 31st every month
 - cform/ec2-scheduler.template.json :
   Add "kms.CreateGrant" permission to IAM role "ec2SchedulerRole" to fix issues of starting EC2 instance with encrypted EBS volume
   Modify S3 bucket name to dcp-install for customized lambda function code
@@ -25,9 +25,9 @@ Note:
   - python code was uploaded to s3://dcp-install
   - nth weekdays format: weekday/nthweek
     weekday(case insensitive): mon, tue,wed,thu,fri,sat,sun 
-    nthweek: 1,2,3,4
+    nthweek: 1 (first week in every month),2 (second) week, 3 (third week),4(fourth week)
 
-Customzied Tags:
+Customized Tags:
   800;1800;utc;all	The instance will start at 0800 hours and stop at 1800 hours on all days of the week.
   1000;1700;utc;weekdays	The instance will start at 1000 hours and stop at 1700 hours Monday through Friday.
   1030;1700;utc;mon,tue,fri	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday only.
@@ -37,5 +37,5 @@ Customzied Tags:
   0815;1745;utc;wed,thu	The instance will start at 0815 hours and stop at 1745 hours on Wednesday and Thursday only.
   none;1800;utc;weekdays	The instance stop at 1800 hours Monday through Friday. The instance will need to be started manually.
   0800;none;utc;weekdays	The instance start at 0800 hours Monday through Friday. The instance will need to be stopped manually.
-  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday
+  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month
 
