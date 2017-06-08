@@ -29,7 +29,7 @@
             "Type": "String",
             "Default": "all"
         },
-        "DefaultTimzZone": {
+        "DefaultTimeZone": {
             "Description": "Enter 'utc', 'Australia/Sydney','Etc/GMT+10', or any timezone supported by pytz",
             "Type": "String",
             "Default": "utc"
