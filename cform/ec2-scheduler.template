@@ -116,7 +116,7 @@
                     "Parameters": [
                         "DefaultStartTime",
                         "DefaultStopTime",
-                        "DefaultDaysActive"
+                        "DefaultDaysActive",
                         "DefaultTimeZone"
                     ]
                 },
