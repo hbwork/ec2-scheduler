@@ -22,6 +22,9 @@ from collections import Counter
 # Import re to analyse month day
 import re
 
+# Import pytz to support local timezone
+import pytz
+
 
 def putCloudWatchMetric(region, instance_id, instance_state):
     
@@ -74,7 +77,10 @@ def lambda_handler(event, context):
     customTagLen = len(customTagName)
     defaultStartTime = str(item['DefaultStartTime'])
     defaultStopTime = str(item['DefaultStopTime'])
-    defaultTimeZone = 'utc'
+
+    #defaultTimeZone = 'utc'
+    defaultTimeZone = str(item['DefaultTimeZone'])
+
     defaultDaysActive = str(item['DefaultDaysActive'])
     sendData = str(item['SendAnonymousData']).lower()
     createMetrics = str(item['CloudWatchMetrics']).lower()
@@ -103,13 +109,7 @@ def lambda_handler(event, context):
             ec2 = boto3.resource('ec2', region_name=region['RegionName'])
 
             awsregion = region['RegionName']
-            now = datetime.datetime.now().strftime("%H%M")
-            nowMax = datetime.datetime.now() - datetime.timedelta(minutes=59)
-            nowMax = nowMax.strftime("%H%M")
-            nowDay = datetime.datetime.today().strftime("%a").lower()
 
-            # now Date to support Start/Stop EC2 instance based on Monthly date
-            nowDate = int(datetime.datetime.today().strftime("%d"))
 
             # Declare Lists
             startList = []
@@ -139,6 +139,12 @@ def lambda_handler(event, context):
                             state = i.state['Name']
                             itype = i.instance_type
 
+                            # Default Timzone
+                            tz = pytz.timezone(defaultTimeZone)
+
+                            # Valid timezone
+                            isValidTimezone = True
+
                             # Post current state of the instances
                             if createMetrics == 'enabled':
                                 if state == "running":
@@ -156,9 +162,33 @@ def lambda_handler(event, context):
                             if len(ptag) >= 2:
                                 stopTime = ptag[1]
                             if len(ptag) >= 3:
-                                timeZone = ptag[2].lower()
+                                #Timezone is case senstive 
+                                timeZone = ptag[2]
+
+                                # timeZone is not empty and not DefaultTimeZone
+                                if timeZone != defaultTimeZone and timeZone != '':
+                                    # utc is not included in pytz.all_timezones
+                                    if timeZone != 'utc':
+                                        if timeZone in pytz.all_timezones:
+                                            tz = pytz.timezone(timeZone)
+                                        # No action if timeZone is not supported 
+                                        else:
+                                            print "Invalid time zone :", timeZone
+                                            isValidTimezone = False
+                                    # utc timezone
+                                    else:
+                                        tz = pytz.timezone('utc')
+
                             if len(ptag) >= 4:
                                 daysActive = ptag[3].lower()
+
+                            now = datetime.datetime.now(tz).strftime("%H%M")
+                            nowMax = datetime.datetime.now() - datetime.timedelta(minutes=59)
+                            nowMax = nowMax.strftime("%H%M")
+                            nowDay = datetime.datetime.today().strftime("%a").lower()
+
+                            # now Date to support Start/Stop EC2 instance based on Monthly date
+                            nowDate = int(datetime.datetime.today().strftime("%d"))
 
                             isActiveDay = False
 
@@ -189,7 +219,7 @@ def lambda_handler(event, context):
 
                             # Append to start list
                             if startTime >= str(nowMax) and startTime <= str(now) and \
-                                    isActiveDay == True and state == "stopped":
+                                    isActiveDay == True and state == "stopped" and isValidTimeZone == True:
 
                                 if i.instance_id not in startList:
                                     startList.append(i.instance_id)
@@ -200,7 +230,7 @@ def lambda_handler(event, context):
 
                             # Append to stop list
                             if stopTime >= str(nowMax) and stopTime <= str(now) and \
-                                    isActiveDay == True and state == "running":
+                                    isActiveDay == True and state == "running" and isValidTimeZone == True:
 
                                 if i.instance_id not in stopList:
                                     stopList.append(i.instance_id)

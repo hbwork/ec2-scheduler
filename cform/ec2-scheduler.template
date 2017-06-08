@@ -15,12 +15,12 @@
             ]
         },
         "DefaultStartTime": {
-            "Description": "Default Start Time (UTC, 24-hour format)",
+            "Description": "Default Start Time (DefaultTimeZone, utc by default,24-hour format)",
             "Type": "String",
             "Default": "0800"
         },
         "DefaultStopTime": {
-            "Description": "Default Start Time (UTC, 24-hour format)",
+            "Description": "Default Start Time (DefaultTimeZone, utc by default, 24-hour format)",
             "Type": "String",
             "Default": "1800"
         },
@@ -28,6 +28,11 @@
             "Description": "Enter 'all', 'weekdays', or any combination of days ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', or 'sun') comma separated",
             "Type": "String",
             "Default": "all"
+        },
+        "DefaultTimzZone": {
+            "Description": "Enter 'utc', 'Australia/Sydney','Etc/GMT+10', or any timezone supported by pytz",
+            "Type": "String",
+            "Default": "utc"
         },
         "CustomTagName": {
             "Description": "Custom Tag Name",
@@ -112,6 +117,7 @@
                         "DefaultStartTime",
                         "DefaultStopTime",
                         "DefaultDaysActive"
+                        "DefaultTimeZone"
                     ]
                 },
                 {
@@ -380,6 +386,11 @@
                             "'DefaultStopTime': {'S': '",
                             {
                                 "Ref": "DefaultStopTime"
+                            },
+                            "'},",
+                            "'DefaultTimeZone': {'S': '",
+                            {
+                                "Ref": "DefaultTimeZone"
                             },
                             "'},",
                             "'SendAnonymousData': {'S': '",
