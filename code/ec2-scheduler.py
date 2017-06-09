@@ -143,7 +143,7 @@ def lambda_handler(event, context):
                             tz = pytz.timezone(defaultTimeZone)
 
                             # Valid timezone
-                            isValidTimezone = True
+                            isValidTimeZone = True
 
                             # Post current state of the instances
                             if createMetrics == 'enabled':
@@ -174,7 +174,7 @@ def lambda_handler(event, context):
                                         # No action if timeZone is not supported 
                                         else:
                                             print "Invalid time zone :", timeZone
-                                            isValidTimezone = False
+                                            isValidTimeZone = False
                                     # utc timezone
                                     else:
                                         tz = pytz.timezone('utc')
@@ -183,12 +183,12 @@ def lambda_handler(event, context):
                                 daysActive = ptag[3].lower()
 
                             now = datetime.datetime.now(tz).strftime("%H%M")
-                            nowMax = datetime.datetime.now() - datetime.timedelta(minutes=59)
+                            nowMax = datetime.datetime.now(tz) - datetime.timedelta(minutes=59)
                             nowMax = nowMax.strftime("%H%M")
-                            nowDay = datetime.datetime.today().strftime("%a").lower()
+                            nowDay = datetime.datetime.now(tz).strftime("%a").lower()
 
                             # now Date to support Start/Stop EC2 instance based on Monthly date
-                            nowDate = int(datetime.datetime.today().strftime("%d"))
+                            nowDate = int(datetime.datetime.now(tz).strftime("%d"))
 
                             isActiveDay = False
 
