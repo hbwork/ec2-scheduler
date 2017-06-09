@@ -47,5 +47,7 @@ Customized Tags:
   0815;1745;utc;wed,thu	The instance will start at 0815 hours and stop at 1745 hours on Wednesday and Thursday only.
   none;1800;utc;weekdays	The instance stop at 1800 hours Monday through Friday. The instance will need to be started manually.
   0800;none;utc;weekdays	The instance start at 0800 hours Monday through Friday. The instance will need to be stopped manually.
-  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month
+  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (utc TimeZone)
+  1030;1700;;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (Default TimeZone)
+  1030;1700;Australia/Sydney;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (Australia/Sydney TimeZone)
 
