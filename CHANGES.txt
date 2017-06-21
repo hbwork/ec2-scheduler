@@ -18,6 +18,16 @@ Changes:
   2230;0725;utc;weekdays,sat/1,sun/4
   none;1700;utc;mon,fri,1,31
 
+Date: June 8, 2017
+Changes:
+- cform/ec2-scheduler.template: new Parameter DefaultTimeZone
+- code/ec2-scheduler.py: customized timezone support (http://pytz.sourceforge.net/)
+  0830;1750;;all  Start instance at 08:30 and stop at 17:30 all days (DefaultTimeZone)
+  0830;1750;Australia/Sydney;all Start instance at 08:30 and stop at 17:30 all days (Australia/Sydney time zone)
+  0830;1750;utc;all Start instance at 08:30 and stop at 17:30 all days (UTC timezone)
+  0830;1750;Etc/GMT+10;all Start instance at 08:30 and stop at 17:30 all days (Etc/GMT+10 timezone)
+  0830;1750;Asia/Tokyo;all Start instance at 08:30 and stop at 17:30 all days (Asia/Tykyo)
+
 How to deploy:
   Deploy CloudFromation stack from CF template cform\ec2-scheduler.template by following document https://s3.amazonaws.com/solutions-reference/ec2-scheduler/latest/ec2-scheduler.pdf or http://docs.aws.amazon.com/solutions/latest/ec2-scheduler/deployment.html
 
@@ -37,5 +47,7 @@ Customized Tags:
   0815;1745;utc;wed,thu	The instance will start at 0815 hours and stop at 1745 hours on Wednesday and Thursday only.
   none;1800;utc;weekdays	The instance stop at 1800 hours Monday through Friday. The instance will need to be started manually.
   0800;none;utc;weekdays	The instance start at 0800 hours Monday through Friday. The instance will need to be stopped manually.
-  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month
+  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (utc TimeZone)
+  1030;1700;;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (Default TimeZone)
+  1030;1700;Australia/Sydney;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (Australia/Sydney TimeZone)
 
