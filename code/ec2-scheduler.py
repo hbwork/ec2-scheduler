@@ -183,8 +183,12 @@ def lambda_handler(event, context):
                                 daysActive = ptag[3].lower()
 
                             now = datetime.datetime.now(tz).strftime("%H%M")
-                            nowMax = datetime.datetime.now(tz) - datetime.timedelta(minutes=59)
-                            nowMax = nowMax.strftime("%H%M")
+                            if  datetime.datetime.now(tz).strftime("%H") != '00':
+                                nowMax = datetime.datetime.now(tz) - datetime.timedelta(minutes=59)
+                                nowMax = nowMax.strftime("%H%M")
+                            else:
+                                nowMax = "0000"
+
                             nowDay = datetime.datetime.now(tz).strftime("%a").lower()
 
                             # now Date to support Start/Stop EC2 instance based on Monthly date
