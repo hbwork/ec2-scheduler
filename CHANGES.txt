@@ -32,6 +32,13 @@ Date: July 3, 2017
 Changes:
 - code/ec2-scheduler.py: bug fix - fails to start instance if startTime is midnight 00xx 
 
+Date: July 6, 2017
+Changes:
+- code/ec2-scheduler.py: 
+   bug fix: nthweek REGEX pattern does match /[2-5] in nthweekdays 
+   enhance: support ":" and ";" as separtor in the tag value
+
+
 
 How to deploy:
   Deploy CloudFromation stack from CF template cform\ec2-scheduler.template by following document https://s3.amazonaws.com/solutions-reference/ec2-scheduler/latest/ec2-scheduler.pdf or http://docs.aws.amazon.com/solutions/latest/ec2-scheduler/deployment.html
