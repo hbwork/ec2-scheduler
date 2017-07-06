@@ -202,7 +202,7 @@ def lambda_handler(event, context):
                                 if (nowDay in weekdays):
                                     isActiveDay = True
                             else:
-                                for d in daysActive.split(";"):
+                                for d in daysActive.split(","):
                                     # mon, tue,wed,thu,fri,sat,sun ?
                                     if d.lower() == nowDay:
                                        isActiveDay = True
