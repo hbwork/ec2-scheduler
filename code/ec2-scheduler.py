@@ -101,7 +101,7 @@ def lambda_handler(event, context):
     monthdays = re.compile(r'^(0?[1-9]|[12]\d|3[01])$')
 
     # nth weekdays Interpreter
-    nthweekdays=re.compile('\w{3}/[1..4]')
+    nthweekdays=re.compile('\w{3}/\d{1}')
 
     for region in awsRegions:
         try:
@@ -127,7 +127,7 @@ def lambda_handler(event, context):
                     for t in i.tags:
                         if t['Key'][:customTagLen] == customTagName:
 
-                            ptag = t['Value'].split(";")
+                            ptag = t['Value'].replace(':',';').split(";")
 
                             # Split out Tag & Set Variables to default
                             default1 = 'default'
@@ -202,8 +202,7 @@ def lambda_handler(event, context):
                                 if (nowDay in weekdays):
                                     isActiveDay = True
                             else:
-                                daysActive = daysActive.split(",")
-                                for d in daysActive:
+                                for d in daysActive.split(","):
                                     # mon, tue,wed,thu,fri,sat,sun ?
                                     if d.lower() == nowDay:
                                        isActiveDay = True
