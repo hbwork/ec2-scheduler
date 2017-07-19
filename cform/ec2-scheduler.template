@@ -176,6 +176,7 @@
                                         "ec2:StopInstances",
                                         "ec2:DescribeRegions",
                                         "ec2:DescribeInstances",
+                                        "rds:*",
                                         "cloudwatch:PutMetricData",
                                         "cloudformation:DescribeStacks",
                                         "kms:CreateGrant"
