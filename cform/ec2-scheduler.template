@@ -491,7 +491,7 @@
                                     {
                                         "Ref": "CustomTagName"
                                     },
-                                    "\",\"SolutionName\":\"EC2Scheduler\"",
+                                    "\",\"SolutionName\":\"EC2Scheduler",
                                     "\",\"DefaultStartTime\":\"",
                                     {
                                         "Ref": "DefaultStartTime"
