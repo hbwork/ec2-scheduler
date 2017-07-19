@@ -134,9 +134,9 @@ def lambda_handler(event, context):
                             # Post current state of the instances
                             if createMetrics == 'enabled':
                                 if state == "running":
-                                    putCloudWatchMetric(region['RegionName'], i.instance_id, 1)
+                                    putCloudWatchMetric(region_name, i.instance_id, 1)
                                 if state == "stopped":
-                                    putCloudWatchMetric(region['RegionName'], i.instance_id, 0)
+                                    putCloudWatchMetric(region_name, i.instance_id, 0)
 
                             # Parse tag-value
                             if len(ptag) >= 1:
@@ -214,7 +214,7 @@ def lambda_handler(event, context):
                                     startList.append(i.instance_id)
                                     print i.instance_id, " added to START list"
                                     if createMetrics == 'enabled':
-                                        putCloudWatchMetric(region['RegionName'], i.instance_id, 1)
+                                        putCloudWatchMetric(region_name, i.instance_id, 1)
                                 # Instance Id already in startList
 
                             # Append to stop list
@@ -225,7 +225,7 @@ def lambda_handler(event, context):
                                     stopList.append(i.instance_id)
                                     print i.instance_id, " added to STOP list"
                                     if createMetrics == 'enabled':
-                                        putCloudWatchMetric(region['RegionName'], i.instance_id, 0)
+                                        putCloudWatchMetric(region_name, i.instance_id, 0)
                                 # Instance Id already in stopList
 
                             if state == 'running':
