@@ -42,7 +42,7 @@
         "SendAnonymousData": {
             "Description": "Send anonymous data to AWS",
             "Type": "String",
-            "Default": "No",
+            "Default": "Yes",
             "AllowedValues": [
                 "Yes",
                 "No"
