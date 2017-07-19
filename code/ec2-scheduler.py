@@ -74,8 +74,8 @@ def lambda_handler(event, context):
     createMetrics = event['CloudWatchMetrics'].lower()
     UUID = event['UUID']
 
-    #TimeNow = datetime.datetime.utcnow().isoformat()
-    #TimeStamp = str(TimeNow)
+    TimeNow = datetime.datetime.utcnow().isoformat()
+    TimeStamp = str(TimeNow)
 
     # Declare Dicts
     regionDict = {}
