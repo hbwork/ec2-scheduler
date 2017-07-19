@@ -55,41 +55,39 @@ def lambda_handler(event, context):
     print "CloudWatch event:"
     print json.dumps(event,indent=2)
 
-    print "CloudWatch context:"
-    print json.dumps(context,indent=2)
-
     ec2 = boto3.client('ec2')
     cf = boto3.client('cloudformation')
+
+    """
     outputs = {}
     stack_name = context.invoked_function_arn.split(':')[6].rsplit('-', 2)[0]
     response = cf.describe_stacks(StackName=stack_name)
     for e in response['Stacks'][0]['Outputs']:
         outputs[e['OutputKey']] = e['OutputValue']
     ddbTableName = outputs['DDBTableName']
+    """
 
-    awsRegions = ec2.describe_regions()['Regions']
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(ddbTableName)
-    response = table.get_item(
-        Key={
-            'SolutionName': 'EC2Scheduler'
-        }
-    )
-    item = response['Item']
+    if event['Regions'] == 'all':
+        AwsRegionNames = []
+        for r in ec2.describe_regions()['Regions']:
+            AwsRegionNames.append(r['RegionName'])
+    else:
+        AwsRegionNames = event['Regions'].split()
 
-    # Reading Default Values from DynamoDB
-    customTagName = str(item['CustomTagName'])
+    print "Operate in regions: ", " ".join(AwsRegionNames)
+
+    # Reading Default Values from CloudWatch Rule Input event
+    customTagName = event['CustomTagName']
     customTagLen = len(customTagName)
-    defaultStartTime = str(item['DefaultStartTime'])
-    defaultStopTime = str(item['DefaultStopTime'])
-
+    defaultStartTime = event['DefaultStartTime']
+    defaultStopTime = event['DefaultStopTime']
     #defaultTimeZone = 'utc'
-    defaultTimeZone = str(item['DefaultTimeZone'])
+    defaultTimeZone = event['DefaultTimeZone']
+    defaultDaysActive = event['DefaultDaysActive']
+    sendData = event['SendAnonymousData'].lower()
+    createMetrics = event['CloudWatchMetrics'].lower()
+    UUID = event['UUID']
 
-    defaultDaysActive = str(item['DefaultDaysActive'])
-    sendData = str(item['SendAnonymousData']).lower()
-    createMetrics = str(item['CloudWatchMetrics']).lower()
-    UUID = str(item['UUID'])
     TimeNow = datetime.datetime.utcnow().isoformat()
     TimeStamp = str(TimeNow)
 
@@ -97,7 +95,7 @@ def lambda_handler(event, context):
     regionDict = {}
     allRegionDict = {}
     regionsLabelDict = {}
-    postDict = {}  
+    postDict = {}
 
     # Weekdays Interpreter
     weekdays = ['mon', 'tue', 'wed', 'thu', 'fri']
@@ -108,13 +106,10 @@ def lambda_handler(event, context):
     # nth weekdays Interpreter
     nthweekdays=re.compile('\w{3}/\d{1}')
 
-    for region in awsRegions:
+    for region_name in AwsRegionNames:
         try:
             # Create connection to the EC2 using Boto3 resources interface
-            ec2 = boto3.resource('ec2', region_name=region['RegionName'])
-
-            awsregion = region['RegionName']
-
+            ec2 = boto3.resource('ec2', region_name = region_name)
 
             # Declare Lists
             startList = []
@@ -125,7 +120,7 @@ def lambda_handler(event, context):
             # List all instances
             instances = ec2.instances.all()
 
-            print "Creating", region['RegionName'], "instance lists..."
+            print "Creating ", region_name, " instance lists..."
 
             for i in instances:
                 if i.tags != None:
@@ -167,7 +162,7 @@ def lambda_handler(event, context):
                             if len(ptag) >= 2:
                                 stopTime = ptag[1]
                             if len(ptag) >= 3:
-                                #Timezone is case senstive 
+                                #Timezone is case senstive
                                 timeZone = ptag[2]
 
                                 # timeZone is not empty and not DefaultTimeZone
@@ -176,7 +171,7 @@ def lambda_handler(event, context):
                                     if timeZone != 'utc':
                                         if timeZone in pytz.all_timezones:
                                             tz = pytz.timezone(timeZone)
-                                        # No action if timeZone is not supported 
+                                        # No action if timeZone is not supported
                                         else:
                                             print "Invalid time zone :", timeZone
                                             isValidTimeZone = False
@@ -222,7 +217,7 @@ def lambda_handler(event, context):
                                     elif nthweekdays.match(d):
                                         (weekday,nthweek) = d.split("/")
 
-                                        if (weekday.lower() == nowDay) and ( nowDate >= (int(nthweek) * 7 - 6)) and (nowDate <= (int(nthweek) * 7)): 
+                                        if (weekday.lower() == nowDay) and ( nowDate >= (int(nthweek) * 7 - 6)) and (nowDate <= (int(nthweek) * 7)):
                                            isActiveDay = True
 
                             # Append to start list
@@ -273,7 +268,7 @@ def lambda_handler(event, context):
                 countStopDict = {}
                 typeStopDict = {}
                 runDictType = {}
-                stopDictType = {}   
+                stopDictType = {}
                 runDict = dict(Counter(runningStateList))
                 for k, v in runDict.iteritems():
                     countRunDict['Count'] = v
@@ -292,7 +287,7 @@ def lambda_handler(event, context):
                 typeStateSum['stopped'] = stopDictType
                 StateSum = {}
                 StateSum['instance_state'] = typeStateSum
-                regionDict[awsregion] = StateSum
+                regionDict[region_name] = StateSum
                 allRegionDict.update(regionDict)
             
         except Exception as e:
@@ -315,4 +310,3 @@ def lambda_handler(event, context):
         content = rsp.read()
         rsp_code = rsp.getcode()
         print ('Response Code: {}'.format(rsp_code))
-
