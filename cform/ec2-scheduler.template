@@ -39,6 +39,11 @@
             "Type": "String",
             "Default": "scheduler:ec2-startstop"
         },
+        "CustomRDSTagName": {
+            "Description": "Custom Tag Name",
+            "Type": "String",
+            "Default": "scheduler:rds-startstop"
+        },
         "SendAnonymousData": {
             "Description": "Send anonymous data to AWS",
             "Type": "String",
@@ -65,8 +70,11 @@
         "RDSSupport": {
             "Description": "Support RDS instances",
             "Type": "String",
-            "Default": "false",
-            "AllowedValues": ["true","false"]
+            "Default": "Yes",
+            "AllowedValues": [
+                "Yes",
+                "No"
+            ]
         }
     },
     "Mappings": {
@@ -340,6 +348,10 @@
                                     "\",\"CustomTagName\":\"",
                                     {
                                         "Ref": "CustomTagName"
+                                    },
+                                    "\",\"CustomRDSTagName\":\"",
+                                    {
+                                        "Ref": "CustomRDSTagName"
                                     },
                                     "\",\"SolutionName\":\"EC2Scheduler",
                                     "\",\"DefaultStartTime\":\"",

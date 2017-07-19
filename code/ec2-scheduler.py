@@ -73,6 +73,11 @@ def lambda_handler(event, context):
     createMetrics = event['CloudWatchMetrics'].lower()
     UUID = event['UUID']
 
+    #Customized RDS Tag Name
+    RDSSupport = event['RDSSupport']
+    customRDSTagName = event['CustomRDSTagName']
+    customRDSTagLen = len(customRDSTagName)
+
     TimeNow = datetime.datetime.utcnow().isoformat()
     TimeStamp = str(TimeNow)
 
@@ -283,6 +288,32 @@ def lambda_handler(event, context):
         except Exception as e:
             print ("Exception: "+str(e))
             continue
+
+        if RDSSupport == "Yes":
+            try:
+                rds = boto3.client('rds', region_name =  'ap-southeast-2')
+                rds_instances = rds.describe_db_instances()
+
+                for rds_instance in rds_instances['DBInstances']:
+                    print "----------"
+                    print rds_instance
+                    print rds_instance['DBInstanceIdentifier']
+                    print rds_instance['MultiAZ']
+                    print rds_instance['ReadReplicaDBInstanceIdentifiers']
+                    print rds_instance['DBInstanceArn']
+
+
+                    response = rds.list_tags_for_resource( ResourceName = rds_instance['DBInstanceArn'])
+                    tags = response['TagList']
+
+                    print tags
+                    for t in tags:
+                        if t['Key'][:customRDSTagLen] == customRDSTagName:
+                            print customRDSTagName, " : ", t['Value']
+
+            except Exception as e:
+                print ("Exception: "+str(e))
+                continue
 
     # Build payload for the account
     if sendData == "yes":
