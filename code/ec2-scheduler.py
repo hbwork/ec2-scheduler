@@ -51,6 +51,13 @@ def lambda_handler(event, context):
 
     print "Running EC2 Scheduler"
 
+    #Debug message
+    print "CloudWatch event:"
+    print json.dumps(event,indent=2)
+
+    print "CloudWatch context:"
+    print json.dumps(context,indent=2)
+
     ec2 = boto3.client('ec2')
     cf = boto3.client('cloudformation')
     outputs = {}
@@ -69,8 +76,6 @@ def lambda_handler(event, context):
         }
     )
     item = response['Item']
-
-
 
     # Reading Default Values from DynamoDB
     customTagName = str(item['CustomTagName'])
