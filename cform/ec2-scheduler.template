@@ -70,7 +70,7 @@
         "RDSSupport": {
             "Description": "Support RDS instances",
             "Type": "String",
-            "Default": "Yes",
+            "Default": "No",
             "AllowedValues": [
                 "Yes",
                 "No"
