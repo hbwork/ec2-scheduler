@@ -39,27 +39,6 @@
             "Type": "String",
             "Default": "scheduler:ec2-startstop"
         },
-        "DynamoDBTableName": {
-            "Description": "DynamoDB Table Name",
-            "Type": "String",
-            "Default": "EC2-Scheduler"
-        },
-        "ReadCapacityUnits": {
-            "ConstraintDescription": "should be between 5 and 10000",
-            "Default": "1",
-            "Description": "Provisioned read throughput",
-            "MaxValue": "10000",
-            "MinValue": "1",
-            "Type": "Number"
-        },
-        "WriteCapacityUnits": {
-            "ConstraintDescription": "should be between 5 and 10000",
-            "Default": "1",
-            "Description": "Provisioned write throughput",
-            "MaxValue": "10000",
-            "MinValue": "1",
-            "Type": "Number"
-        },
         "SendAnonymousData": {
             "Description": "Send anonymous data to AWS",
             "Type": "String",
@@ -77,6 +56,17 @@
                 "Enabled",
                 "Disabled"
             ]
+        },
+        "Regions": {
+            "Description": "AWS regions to query, all means all AWS regions, or separate  multiple regions by space",
+            "Type": "String",
+            "Default": "ap-southeast-2"
+        },
+        "RDSSupport": {
+            "Description": "Support RDS instances",
+            "Type": "String",
+            "Default": "false",
+            "AllowedValues": ["true","false"]
         }
     },
     "Mappings": {
@@ -118,16 +108,6 @@
                         "DefaultStopTime",
                         "DefaultDaysActive",
                         "DefaultTimeZone"
-                    ]
-                },
-                {
-                    "Label": {
-                        "default": "DynamoDB Configuration"
-                    },
-                    "Parameters": [
-                        "DynamoDBTableName",
-                        "ReadCapacityUnits",
-                        "WriteCapacityUnits"
                     ]
                 },
                 {
@@ -184,15 +164,6 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "dynamodb:GetItem"
-                                    ],
-                                    "Resource": [
-                                        "arn:aws:dynamodb:*:*:table/*"
-                                    ]
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
                                         "ec2:StartInstances",
                                         "ec2:StopInstances",
                                         "ec2:DescribeRegions",
@@ -225,36 +196,9 @@
                     "S3Key": "ec2-scheduler.zip"
                 },
                 "Runtime": "python2.7",
-                "Timeout": "300"
+                "Timeout": "300",
+                "MemorySize": 256
             }
-        },
-        "CreateParamDDB": {
-            "Properties": {
-                "AttributeDefinitions": [
-                    {
-                        "AttributeName": "SolutionName",
-                        "AttributeType": "S"
-                    }
-                ],
-                "KeySchema": [
-                    {
-                        "AttributeName": "SolutionName",
-                        "KeyType": "HASH"
-                    }
-                ],
-                "ProvisionedThroughput": {
-                    "ReadCapacityUnits": {
-                        "Ref": "ReadCapacityUnits"
-                    },
-                    "WriteCapacityUnits": {
-                        "Ref": "WriteCapacityUnits"
-                    }
-                },
-                "TableName": {
-                    "Ref": "DynamoDBTableName"
-                }
-            },
-            "Type": "AWS::DynamoDB::Table"
         },
         "SolutionHelperRole": {
             "Type": "AWS::IAM::Role",
@@ -286,15 +230,6 @@
                                         "logs:PutLogEvents"
                                     ],
                                     "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "dynamodb:PutItem"
-                                    ],
-                                    "Resource": [
-                                        "arn:aws:dynamodb:*:*:table/*"
-                                    ]
                                 },
                                 {
                                     "Effect": "Allow",
@@ -334,7 +269,7 @@
                         "Arn"
                     ]
                 },
-                "Description": "This function creates a CloudFormation custom lambda resource that writes parameters into DynamoDB table.",
+                "Description": "This function creates a CloudFormation custom lambda resource that put data to AWS.",
                 "Code": {
                     "S3Bucket": {
                         "Fn::Join": [
@@ -351,80 +286,6 @@
                 },
                 "Runtime": "python2.7",
                 "Timeout": "120"
-            }
-        },
-        "PutDdbData": {
-            "Type": "Custom::PutDDBData",
-            "Properties": {
-                "ServiceToken": {
-                    "Fn::GetAtt": [
-                        "SolutionHelper",
-                        "Arn"
-                    ]
-                },
-                "StoreInDDB": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "{ 'TableName' : '",
-                            {
-                                "Ref": "CreateParamDDB"
-                            },
-                            "', ",
-                            "'Item': {",
-                            "'CustomTagName': {'S': '",
-                            {
-                                "Ref": "CustomTagName"
-                            },
-                            "'},",
-                            "'SolutionName': {'S': 'EC2Scheduler'},",
-                            "'DefaultStartTime': {'S': '",
-                            {
-                                "Ref": "DefaultStartTime"
-                            },
-                            "'},",
-                            "'DefaultStopTime': {'S': '",
-                            {
-                                "Ref": "DefaultStopTime"
-                            },
-                            "'},",
-                            "'DefaultTimeZone': {'S': '",
-                            {
-                                "Ref": "DefaultTimeZone"
-                            },
-                            "'},",
-                            "'SendAnonymousData': {'S': '",
-                            {
-                                "Ref": "SendAnonymousData"
-                            },
-                            "'},",
-                            "'CloudWatchMetrics': {'S': '",
-                            {
-                                "Ref": "CloudWatchMetrics"
-                            },
-                            "'},",
-                            "'UUID': {'S': '",
-                            {
-                                "Fn::GetAtt": [
-                                    "CreateUniqueID",
-                                    "UUID"
-                                ]
-                            },
-                            "'},",
-                            "'DefaultDaysActive': {'S': '",
-                            {
-                                "Ref": "DefaultDaysActive"
-                            },
-                            "'}",
-                            "}",
-                            "}"
-                        ]
-                    ]
-                },
-                "DependsOn": [
-                    "CreateUniqueID",
-                    "CreateParamDDB"
-                ]
             }
         },
         "CreateUniqueID": {
@@ -467,7 +328,59 @@
                                 "Arn"
                             ]
                         },
-                        "Id": "TargetFunctionV1"
+                        "Id": "TargetFunctionV1",
+                        "Input": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    "{\"Regions\":\"",
+                                    {
+                                        "Ref": "Regions"
+                                    },
+                                    "\",\"CustomTagName\":\"",
+                                    {
+                                        "Ref": "CustomTagName"
+                                    },
+                                    "\",\"SolutionName\":\"EC2Scheduler",
+                                    "\",\"DefaultStartTime\":\"",
+                                    {
+                                        "Ref": "DefaultStartTime"
+                                    },
+                                    "\",\"DefaultStopTime\":\"",
+                                    {
+                                        "Ref": "DefaultStopTime"
+                                    },
+                                    "\",\"DefaultTimeZone\":\"",
+                                    {
+                                        "Ref": "DefaultTimeZone"
+                                    },
+                                    "\",\"SendAnonymousData\":\"",
+                                    {
+                                        "Ref": "SendAnonymousData"
+                                    },
+                                    "\",\"CloudWatchMetrics\":\"",
+                                    {
+                                        "Ref": "CloudWatchMetrics"
+                                    },
+                                    "\",\"UUID\":\"",
+                                    {
+                                        "Fn::GetAtt": [
+                                            "CreateUniqueID",
+                                            "UUID"
+                                        ]
+                                    },
+                                    "\",\"DefaultDaysActive\":\"",
+                                    {
+                                        "Ref": "DefaultDaysActive"
+                                    },
+                                    "\",\"RDSSupport\":\"",
+                                    {
+                                        "Ref": "RDSSupport"
+                                    },
+                                    "\"}"
+                                ]
+                            ]
+                        }
                     }
                 ]
             }
@@ -497,12 +410,6 @@
                     "CreateUniqueID",
                     "UUID"
                 ]
-            }
-        },
-        "DDBTableName": {
-            "Description": "DynamoDB Table Name",
-            "Value": {
-                "Ref": "CreateParamDDB"
             }
         }
     }
