@@ -236,7 +236,8 @@
                     "S3Key": "ec2-scheduler.zip"
                 },
                 "Runtime": "python2.7",
-                "Timeout": "300"
+                "Timeout": "300",
+                "MemorySize": 256
             }
         },
         "CreateParamDDB": {
