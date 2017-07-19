@@ -51,21 +51,7 @@ def lambda_handler(event, context):
 
     print "Running EC2 Scheduler"
 
-    #Debug message
-    print "CloudWatch event:"
-    print json.dumps(event,indent=2)
-
     ec2 = boto3.client('ec2')
-    cf = boto3.client('cloudformation')
-
-    """
-    outputs = {}
-    stack_name = context.invoked_function_arn.split(':')[6].rsplit('-', 2)[0]
-    response = cf.describe_stacks(StackName=stack_name)
-    for e in response['Stacks'][0]['Outputs']:
-        outputs[e['OutputKey']] = e['OutputValue']
-    ddbTableName = outputs['DDBTableName']
-    """
 
     if event['Regions'] == 'all':
         AwsRegionNames = []
@@ -88,8 +74,8 @@ def lambda_handler(event, context):
     createMetrics = event['CloudWatchMetrics'].lower()
     UUID = event['UUID']
 
-    TimeNow = datetime.datetime.utcnow().isoformat()
-    TimeStamp = str(TimeNow)
+    #TimeNow = datetime.datetime.utcnow().isoformat()
+    #TimeStamp = str(TimeNow)
 
     # Declare Dicts
     regionDict = {}
