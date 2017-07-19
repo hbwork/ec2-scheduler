@@ -67,7 +67,6 @@ def lambda_handler(event, context):
     customTagLen = len(customTagName)
     defaultStartTime = event['DefaultStartTime']
     defaultStopTime = event['DefaultStopTime']
-    #defaultTimeZone = 'utc'
     defaultTimeZone = event['DefaultTimeZone']
     defaultDaysActive = event['DefaultDaysActive']
     sendData = event['SendAnonymousData'].lower()
@@ -169,6 +168,11 @@ def lambda_handler(event, context):
                                 daysActive = ptag[3].lower()
 
                             now = datetime.datetime.now(tz).strftime("%H%M")
+
+                            # Support 24x7
+                            if startTime  == '24x7':
+                                startTime = now
+
                             if  datetime.datetime.now(tz).strftime("%H") != '00':
                                 nowMax = datetime.datetime.now(tz) - datetime.timedelta(minutes=59)
                                 nowMax = nowMax.strftime("%H%M")
