@@ -77,6 +77,17 @@
                 "Enabled",
                 "Disabled"
             ]
+        },
+        "Regions": {
+            "Description": "AWS regions to query, all means all AWS regions, or separate  multiple regions by space",
+            "Type": "String",
+            "Default": "ap-southeast-2"
+        },
+        "RDSSupport": {
+            "Description": "Support RDS instances",
+            "Type": "String",
+            "Default": "false",
+            "AllowedValues": ["true","false"]
         }
     },
     "Mappings": {
@@ -467,7 +478,59 @@
                                 "Arn"
                             ]
                         },
-                        "Id": "TargetFunctionV1"
+                        "Id": "TargetFunctionV1",
+                        "Input": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    "{\"Regions\":\"",
+                                    {
+                                        "Ref": "Regions"
+                                    },
+                                    "\",\"CustomTagName\":\"",
+                                    {
+                                        "Ref": "CustomTagName"
+                                    },
+                                    "\",\"SolutionName\":\"EC2Scheduler\"",
+                                    "\",\"DefaultStartTime\":\"",
+                                    {
+                                        "Ref": "DefaultStartTime"
+                                    },
+                                    "\",\"DefaultStopTime\":\"",
+                                    {
+                                        "Ref": "DefaultStopTime"
+                                    },
+                                    "\",\"DefaultTimeZone\":\"",
+                                    {
+                                        "Ref": "DefaultTimeZone"
+                                    },
+                                    "\",\"SendAnonymousData\":\"",
+                                    {
+                                        "Ref": "SendAnonymousData"
+                                    },
+                                    "\",\"CloudWatchMetric\":\"",
+                                    {
+                                        "Ref": "CloudWatchMetrics"
+                                    },
+                                    "\",\"UUID\":\"",
+                                    {
+                                        "Fn::GetAtt": [
+                                            "CreateUniqueID",
+                                            "UUID"
+                                        ]
+                                    },
+                                    "\",\"DefaultDaysActive\":\"",
+                                    {
+                                        "Ref": "DefaultDaysActive"
+                                    },
+                                    "\",\"RDSSupport\":\"",
+                                    {
+                                        "Ref": "RDSSupport"
+                                    },
+                                    "\"}"
+                                ]
+                            ]
+                        }
                     }
                 ]
             }
