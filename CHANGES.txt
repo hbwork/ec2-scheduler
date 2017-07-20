@@ -36,9 +36,29 @@ Date: July 6, 2017
 Changes:
 - code/ec2-scheduler.py: 
    bug fix: nthweek REGEX pattern does match /[2-5] in nthweekdays 
-   enhance: support ":" and ";" as separtor in the tag value
+   enhancement: support ":" and ";" as separtor in the tag value
 
+Date: July 19,2017
+Changes:
+- New feature: RDS instance support
+- cform/ec2-scheduler.template.json :
+  Remove DynamoDB and add default parameters to CloudWatch rule event input
+  IAM role - remove dynamoDB access and allow RDS access (to be customzied, allows rds:* for the moment)
+  Additional parameters: Regions, CustomRDSTagName
+  Lambda function: memorysize 256MB
+- code/ec2-scheduler.py: 
+  Read default parameter from Cloudwatch event input
+  customized AWS Region(s)
+  startTime 24x7 - start instance at any time if it is stopped
+  RDS instance support
+  Re-structure python code 
+- script
+  Shell script to create/update CloudFormation stack (Jenkins Job script)
 
+Note about RDS support:
+- no CloudWatch Matrics
+- no anonymous data sent to AWS
+- http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html
 
 How to deploy:
   Deploy CloudFromation stack from CF template cform\ec2-scheduler.template by following document https://s3.amazonaws.com/solutions-reference/ec2-scheduler/latest/ec2-scheduler.pdf or http://docs.aws.amazon.com/solutions/latest/ec2-scheduler/deployment.html
@@ -50,6 +70,10 @@ Note:
     nthweek: 1 (first week in every month),2 (second) week, 3 (third week),4(fourth week)
 
 Customized Tags:
+  24x7 start RDS/EC2 instance at any time if it is stopped
+  none No action
+  0800;;;weekdays Start the instane at 08:00 (Default Timezone) in weekdays if it is not stopped.
+  ;1700;;weekdays Stop the instane at 17:00 (Default Timezone) in weekdays if it is running.
   0800;1800;utc;all	The instance will start at 0800 hours and stop at 1800 hours on all days of the week.
   0001;1800;Etc/GMT+1;Mon/1	The instance will start at 0001 hour and stop at 1800 hour (first Monday of every month, Etc/GMT+1 timezone)
   1000;1700;utc;weekdays	The instance will start at 1000 hours and stop at 1700 hours Monday through Friday.
