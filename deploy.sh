@@ -1,10 +1,5 @@
 #!/bin/bash
 
-#if [ "$#" -ne 5 ] ; then
-#  echo "Usage: ./deploy.sh s3_bucket_name accountId rolename externalId"
-#  exit 1
-#fi
-
 #export AccountId=${2}
 #export RoleName=${3}
 #export ExternalId=${4}
@@ -38,7 +33,27 @@ function assume_role {
   fi
 }
 
+
+#Stack Deploy Parameters
+StackName="ec2-scheduler"
+DefaultTimeZone="Australia/Melbourne"
+RDSSupport="Yes"
+Schedule="5minutes"
+
+#if [ "$#" -ne 5 ] ; then
+#  echo "Usage: ./deploy.sh s3_bucket_name accountId rolename externalId"
+#  exit 1
+#fi
 # assume_role
+
+if [ "$#" -ne 2 ] ; then
+    echo "Usage: ./deploy.sh s3_bucket_name"
+    exit 1
+fi
+
+#S3 BucketName for zip file
+S3BucketName=${1}
+
 rm -f *.zip
 
 cd code
@@ -49,7 +64,7 @@ pip install pytz -t .
 
 zip -r -9 ../ec2-scheduler.zip *
 
-aws s3 cp ../ec2*.zip s3://dcp-install --profile dcp
+aws s3 cp ../ec2*.zip s3://${S3BucketName}
 
 cd ..
 
@@ -57,47 +72,50 @@ aws cloudformation validate-template --template-body file://cform/ec2-scheduler.
 
 set +e
 
-StackStatus=$(aws cloudformation describe-stacks --stack-name ec2-scheduler --query Stacks[0].StackStatus --output text)
+StackStatus=$(aws cloudformation describe-stacks --stack-name ${StackName} --query Stacks[0].StackStatus --output text)
 
 set -e
 
 if [ ${#StackStatus} -eq 0 ]
 then
     echo "Stack ec2-scheduler does not exist, create stack"
-    Action="create-stack"
 
-    aws cloudformation ${Action} --stack-name ec2-scheduler \
+    aws cloudformation create-stack --stack-name ${StackName} \
 		--template-body file://cform/ec2-scheduler.template \
     	--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-    	--parameters ParameterKey=DefaultTimeZone,ParameterValue='Australia/Melbourne' \
-    	ParameterKey=RDSSupport,ParameterValue=Yes \
-    	ParameterKey=Schedule,ParameterValue=1minute
+    	--parameters \
+    	ParameterKey=DefaultTimeZone,ParameterValue=${DefaultTimeZone}  \
+    	ParameterKey=RDSSupport,ParameterValue=${RDSSupport} \
+    	ParameterKey=Schedule,ParameterValue=${Schedule} \
+    	ParameterKey=S3BucketName,ParameterValue=${S3BucketName}
 
     sleep 30
 
 elif [ ${StackStatus} == 'CREATE_COMPLETE' -o ${StackStatus} == 'UPDATE_COMPLETE' ]
 then
-    echo "Update stack ec2-scheduler"
+    echo "Update stack ${StackName}"
 
-    ChangeSetName="jenkins-$(uuidgen)"
+    ChangeSetName="${StackName}-$(uuidgen)"
 
-    aws cloudformation create-change-set --stack-name ec2-scheduler \
+    aws cloudformation create-change-set --stack-name ${StackName} \
           --template-body file://cform/ec2-scheduler.template \
           --change-set-name ${ChangeSetName} \
           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-          --parameters ParameterKey=DefaultTimeZone,ParameterValue='Australia/Melbourne' \
-                    ParameterKey=RDSSupport,ParameterValue=Yes \
-                    ParameterKey=Schedule,ParameterValue=1minute \
+    	  --parameters \
+    	    ParameterKey=DefaultTimeZone,ParameterValue=${DefaultTimeZone}  \
+    	    ParameterKey=RDSSupport,ParameterValue=${RDSSupport} \
+    	    ParameterKey=Schedule,ParameterValue=${Schedule} \
+    	    ParameterKey=S3BucketName,ParameterValue=${S3BucketName}
 
     sleep 10
 
-	ChangeSetStatus=$(aws cloudformation describe-change-set --change-set-name ${ChangeSetName} --stack-name ec2-scheduler --query Status --output text)
+	ChangeSetStatus=$(aws cloudformation describe-change-set --change-set-name ${ChangeSetName} --stack-name ${StackName} --query Status --output text)
 
     #CREATE_IN_PROGRESS , CREATE_COMPLETE , or FAILED
     while [ ${ChangeSetStatus} == 'CREATE_IN_PROGRES' ]
     do
     	sleep 30
-    	ChangeSetStatus=$(aws cloudformation describe-change-set --change-set-name ${ChangeSetName} --stack-name ec2-scheduler --query Status --output text)
+    	ChangeSetStatus=$(aws cloudformation describe-change-set --change-set-name ${ChangeSetName} --stack-name ${StackName} --query Status --output text)
     done
 
 	if [ ${ChangeSetStatus} == 'FAILED' ]
@@ -108,17 +126,15 @@ then
 		aws lambda update-function-code --function-name ${FunctionName} --zip-file fileb://ec2-scheduler.zip
     else
     	echo "Execute change set ${ChangeSetName}"
-		aws cloudformation execute-change-set --change-set-name ${ChangeSetName} --stack-name ec2-scheduler
+		aws cloudformation execute-change-set --change-set-name ${ChangeSetName} --stack-name ${StackName}
     	sleep 30
     fi
-
 else
-    echo "Failed to create or update stack ec2-scheduler: expected stack status: ${StackStatus}"
+    echo "Failed to create or update stack ${StackName}: expected stack status: ${StackStatus}"
     exit 1
 fi
 
-
-StackStatus=$(aws cloudformation describe-stacks --stack-name ec2-scheduler --query Stacks[0].StackStatus --output text)
+StackStatus=$(aws cloudformation describe-stacks --stack-name ${StackName} --query Stacks[0].StackStatus --output text)
 
 #CREATE_IN_PROGRESS
 #UPDATE_IN_PROGRESS
@@ -126,7 +142,7 @@ StackStatus=$(aws cloudformation describe-stacks --stack-name ec2-scheduler --qu
 while [ $StackStatus == "CREATE_IN_PROGRESS" -o $StackStatus == "UPDATE_IN_PROGRESS" ]
 do
 	sleep 30
-    StackStatus=$(aws cloudformation describe-stacks --stack-name ec2-scheduler --query Stacks[0].StackStatus --output text)
+    StackStatus=$(aws cloudformation describe-stacks --stack-name ${StackName} --query Stacks[0].StackStatus --output text)
 done
 
 # CREATE_COMPLETE
@@ -134,6 +150,6 @@ done
 # UPDATE_COMPLETE_CLEANUP_IN_PROGRESS
 if [ $StackStatus != "CREATE_COMPLETE" -a $StackStatus != "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS" -a $StackStatus != "UPDATE_COMPLETE" ]
 then
-	echo "${Action} stack failed - ${StackStatus}"
+	echo "Create/Update stack failed - ${StackStatus}"
     exit 1
 fi

@@ -27,7 +27,11 @@ Source code for the AWS solution "EC2 Scheduler".
 - pytz : https://pypi.python.org/pypi/pytz
 
     Please install boto3 and pytz locally if you experience blow error message which is caused by the outdated boto3 library provided by AWS lambda.
-     
+    
+    - Exception: 'RDS' object has no attribute 'start_db_instance'
+    
+    - Exception: 'RDS' object has no attribute 'stop_db_instance'
+    
     cd code
     
     pip install boto3 -t .
