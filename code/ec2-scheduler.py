@@ -25,6 +25,25 @@ import re
 # Import pytz to support local timezone
 import pytz
 
+# Global variables definition
+# Weekdays Interpreter
+weekdays = ['mon', 'tue', 'wed', 'thu', 'fri']
+
+# Monthdays Interpreter (1..31)
+monthdays = re.compile(r'^(0?[1-9]|[12]\d|3[01])$')
+
+# nth weekdays Interpreter
+nthweekdays=re.compile('\w{3}/\d{1}')
+
+# Split out Tag & Set Variables to default
+default1 = 'default'
+default2 = 'true'
+
+#Default startTime, stopTime, TimeZone
+defaultStartTime = 'none'
+defaultStopTime = 'none'
+defaultTimeZone = 'utc'
+defaultDaysActive = 'all'
 
 def putCloudWatchMetric(region, instance_id, instance_state):
     
@@ -47,9 +66,106 @@ def putCloudWatchMetric(region, instance_id, instance_state):
         
     )
 
+def scheduler_action(tagValue):
+    #Default scheduler action
+    Action = 'None'
+
+    ptag = tagValue.replace(':',';').split(";")
+
+    startTime = defaultStartTime
+    stopTime = defaultStopTime
+    timeZone = defaultTimeZone
+    daysActive = defaultDaysActive
+
+    # Default Timzone
+    tz = pytz.timezone(defaultTimeZone)
+
+    # Valid timezone
+    isValidTimeZone = True
+
+    # Parse tag-value
+    if len(ptag) >= 1:
+        if ptag[0].lower() in (default1, default2):
+            startTime = defaultStartTime
+        else:
+            startTime = ptag[0]
+            stopTime = ptag[0]
+    if len(ptag) >= 2:
+        stopTime = ptag[1]
+    if len(ptag) >= 3:
+        #Timezone is case senstive
+        timeZone = ptag[2]
+
+        # timeZone is not empty and not DefaultTimeZone
+        if timeZone != defaultTimeZone and timeZone != '':
+            # utc is not included in pytz.all_timezones
+            if timeZone != 'utc':
+                if timeZone in pytz.all_timezones:
+                    tz = pytz.timezone(timeZone)
+                # No action if timeZone is not supported
+                else:
+                    print "Invalid time zone :", timeZone
+                    isValidTimeZone = False
+            # utc timezone
+            else:
+                tz = pytz.timezone('utc')
+
+    if len(ptag) >= 4:
+        daysActive = ptag[3].lower()
+
+    now = datetime.datetime.now(tz).strftime("%H%M")
+
+    # Support 24x7
+    if startTime  == '24x7':
+        tartTime = now
+
+    if  datetime.datetime.now(tz).strftime("%H") != '00':
+        nowMax = datetime.datetime.now(tz) - datetime.timedelta(minutes=59)
+        nowMax = nowMax.strftime("%H%M")
+    else:
+        nowMax = "0000"
+        daysActive
+
+    nowDay = datetime.datetime.now(tz).strftime("%a").lower()
+    nowDate = int(datetime.datetime.now(tz).strftime("%d"))
+
+    isActiveDay = False
+
+    if daysActive == "all":
+        isActiveDay = True
+    elif daysActive == "weekdays":
+        if (nowDay in weekdays):
+            isActiveDay = True
+        else:
+            for d in daysActive.split(","):
+                # mon, tue,wed,thu,fri,sat,sun ?
+                if d.lower() == nowDay:
+                    isActiveDay = True
+                # Month days?
+                elif monthdays.match(d):
+                    if int(d) == nowDate:
+                        isActiveDay = True
+                # mon/1 first Monday of the month
+                # tue/2 second Tuesday of the month
+                # Fri/3 third Friday of the month
+                # sat/4 forth Saturday of the month
+                elif nthweekdays.match(d):
+                    (weekday,nthweek) = d.split("/")
+
+                    if (weekday.lower() == nowDay) and ( nowDate >= (int(nthweek) * 7 - 6)) and (nowDate <= (int(nthweek) * 7)):
+                        isActiveDay = True
+
+   if startTime >= str(nowMax) and startTime <= str(now) and isActiveDay == True and isValidTimeZone == True:
+        Action = "Start"
+
+   if stopTime >= str(nowMax) and stopTime <= str(now) and isActiveDay == True and isValidTimeZone == True"
+        Action = "Stop"
+
+    return Action
+
 def lambda_handler(event, context):
 
-    print "Running EC2 Scheduler"
+    print "Running EC2 and RDS Scheduler"
 
     ec2 = boto3.client('ec2')
 
@@ -87,15 +203,6 @@ def lambda_handler(event, context):
     regionsLabelDict = {}
     postDict = {}
 
-    # Weekdays Interpreter
-    weekdays = ['mon', 'tue', 'wed', 'thu', 'fri']
-
-    # Monthdays Interpreter (1..31)
-    monthdays = re.compile(r'^(0?[1-9]|[12]\d|3[01])$')
-
-    # nth weekdays Interpreter
-    nthweekdays=re.compile('\w{3}/\d{1}')
-
     for region_name in AwsRegionNames:
         try:
             # Create connection to the EC2 using Boto3 resources interface
@@ -117,23 +224,8 @@ def lambda_handler(event, context):
                     for t in i.tags:
                         if t['Key'][:customTagLen] == customTagName:
 
-                            ptag = t['Value'].replace(':',';').split(";")
-
-                            # Split out Tag & Set Variables to default
-                            default1 = 'default'
-                            default2 = 'true'
-                            startTime = defaultStartTime
-                            stopTime = defaultStopTime
-                            timeZone = defaultTimeZone
-                            daysActive = defaultDaysActive
                             state = i.state['Name']
                             itype = i.instance_type
-
-                            # Default Timzone
-                            tz = pytz.timezone(defaultTimeZone)
-
-                            # Valid timezone
-                            isValidTimeZone = True
 
                             # Post current state of the instances
                             if createMetrics == 'enabled':
@@ -142,83 +234,10 @@ def lambda_handler(event, context):
                                 if state == "stopped":
                                     putCloudWatchMetric(region_name, i.instance_id, 0)
 
-                            # Parse tag-value
-                            if len(ptag) >= 1:
-                                if ptag[0].lower() in (default1, default2):
-                                    startTime = defaultStartTime
-                                else:
-                                    startTime = ptag[0]
-                                    stopTime = ptag[0]
-                            if len(ptag) >= 2:
-                                stopTime = ptag[1]
-                            if len(ptag) >= 3:
-                                #Timezone is case senstive
-                                timeZone = ptag[2]
-
-                                # timeZone is not empty and not DefaultTimeZone
-                                if timeZone != defaultTimeZone and timeZone != '':
-                                    # utc is not included in pytz.all_timezones
-                                    if timeZone != 'utc':
-                                        if timeZone in pytz.all_timezones:
-                                            tz = pytz.timezone(timeZone)
-                                        # No action if timeZone is not supported
-                                        else:
-                                            print "Invalid time zone :", timeZone
-                                            isValidTimeZone = False
-                                    # utc timezone
-                                    else:
-                                        tz = pytz.timezone('utc')
-
-                            if len(ptag) >= 4:
-                                daysActive = ptag[3].lower()
-
-                            now = datetime.datetime.now(tz).strftime("%H%M")
-
-                            # Support 24x7
-                            if startTime  == '24x7':
-                                startTime = now
-
-                            if  datetime.datetime.now(tz).strftime("%H") != '00':
-                                nowMax = datetime.datetime.now(tz) - datetime.timedelta(minutes=59)
-                                nowMax = nowMax.strftime("%H%M")
-                            else:
-                                nowMax = "0000"
-
-                            nowDay = datetime.datetime.now(tz).strftime("%a").lower()
-
-                            # now Date to support Start/Stop EC2 instance based on Monthly date
-                            nowDate = int(datetime.datetime.now(tz).strftime("%d"))
-
-                            isActiveDay = False
-
-                            if daysActive == "all":
-                                isActiveDay = True
-                            elif daysActive == "weekdays":
-                                if (nowDay in weekdays):
-                                    isActiveDay = True
-                            else:
-                                for d in daysActive.split(","):
-                                    # mon, tue,wed,thu,fri,sat,sun ?
-                                    if d.lower() == nowDay:
-                                       isActiveDay = True
-                                    # Month days?
-                                    elif monthdays.match(d):
-                                        if int(d) == nowDate:
-                                            isActiveDay = True
-                                    # mon/1 first Monday of the month
-                                    # tue/2 second Tuesday of the month
-                                    # Fri/3 third Friday of the month
-                                    # sat/4 forth Saturday of the month
-                                    elif nthweekdays.match(d):
-                                        (weekday,nthweek) = d.split("/")
-
-                                        if (weekday.lower() == nowDay) and ( nowDate >= (int(nthweek) * 7 - 6)) and (nowDate <= (int(nthweek) * 7)):
-                                           isActiveDay = True
+                            action = scheduler_action(tagValue = t['Value'])
 
                             # Append to start list
-                            if startTime >= str(nowMax) and startTime <= str(now) and \
-                                    isActiveDay == True and state == "stopped" and isValidTimeZone == True:
-
+                            if action == 'Start' and state == "stopped":
                                 if i.instance_id not in startList:
                                     startList.append(i.instance_id)
                                     print i.instance_id, " added to START list"
@@ -227,9 +246,7 @@ def lambda_handler(event, context):
                                 # Instance Id already in startList
 
                             # Append to stop list
-                            if stopTime >= str(nowMax) and stopTime <= str(now) and \
-                                    isActiveDay == True and state == "running" and isValidTimeZone == True:
-
+                            if action == 'Stop' and state == "running":
                                 if i.instance_id not in stopList:
                                     stopList.append(i.instance_id)
                                     print i.instance_id, " added to STOP list"
@@ -254,7 +271,6 @@ def lambda_handler(event, context):
                 ec2.instances.filter(InstanceIds=stopList).stop()
             else:
                 print "No Instances to Stop"
-
 
             # Built payload for each region
             if sendData == "yes":
@@ -302,7 +318,6 @@ def lambda_handler(event, context):
                     print rds_instance['ReadReplicaDBInstanceIdentifiers']
                     print rds_instance['DBInstanceArn']
 
-
                     response = rds.list_tags_for_resource( ResourceName = rds_instance['DBInstanceArn'])
                     tags = response['TagList']
 
@@ -331,3 +346,26 @@ def lambda_handler(event, context):
         content = rsp.read()
         rsp_code = rsp.getcode()
         print ('Response Code: {}'.format(rsp_code))
+
+# Local version
+if  __name__ =='__main__':
+    event = {
+        "DefaultStartTime": "0800",
+        "DefaultStopTime": "1800",
+        "UUID": "27b0ceaa-2162-47d0-9ed1-e7e76f22cbba",
+        "SolutionName": "EC2Scheduler",
+        "DefaultDaysActive": "all",
+        "Regions": "ap-southeast-2",
+        "DefaultTimeZone": "Australia/Melbourne",
+        "RDSSupport": "Yes",
+        "SendAnonymousData": "No",
+        "CustomTagName": "scheduler:ec2-startstop",
+        "CustomRDSTagName": "scheduler:rds-startstop",
+        "CloudWatchMetric": "Enabled"
+    }
+
+    context = None
+
+    lambda_handler(event = event, context = context)
+
+#EOF
