@@ -43,6 +43,8 @@ rm -f *.zip
 
 cd code
 
+# boto3 provided in lambda does not support rds.start_db_instance and rds.stop_db_instance
+pip install boto3 -t .
 pip install pytz -t .
 
 zip -r -9 ../ec2-scheduler.zip *
