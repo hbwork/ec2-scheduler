@@ -75,6 +75,11 @@
                 "Yes",
                 "No"
             ]
+        },
+        "S3BucketName": {
+            "Description": "S3 bucket name in which  lambda zip code is",
+            "Type": "String",
+            "Default": "dcp-install"
         }
     },
     "Mappings": {
@@ -201,7 +206,9 @@
                 },
                 "Description": "EC2 Scheduler Lambda function (supporting weekdays/monthdays) for automatically starting and stopping EC2 instances.",
                 "Code": {
-                    "S3Bucket": "dcp-install",
+                    "S3Bucket": {
+                        "Ref" : "S3BucketName"
+                    },
                     "S3Key": "ec2-scheduler.zip"
                 },
                 "Runtime": "python2.7",
