@@ -97,17 +97,17 @@ You can sepereate each values with a semicolon or colon. The following table giv
 
 |Tag Value Field|Acceptable input values|Scheduled Action/Note |
 | ------ | ------ | ------ | 
-|<start time> | none | No action|
+|start time | none | No action|
 || 24x7| Start the instance at any time if it is stopped|
 || default| The instance will start and stop on the default schedule|
 || true| The instance will start and stop on the default schedule|
 || HHMM| Time in 24-hour format (Default time zone or timezone specified, with no colon)|
-|<stop time> | none | No action|
+|stop time | none | No action|
 || HHMM| Time in 24-hour format (Default time zone or timezone specified, with no colon)|
-|<time zone>| <empty>| Default scheduler time zone |
+|time zone| <empty>| Default scheduler time zone |
 ||utc| UTC time zone |
 ||Australia/Melbourne| Or any pytz library supported time zone value |
-|<active day(s)|all| All days |
+|active day(s)|all| All days |
 ||weekdays| From Monday to Friday |
 ||sat,1,2| Saturday, 1st and 2nd in each month|
 ||sat/2, fri/4| The second Saturday and fourth Friday in each month|
