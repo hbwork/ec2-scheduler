@@ -65,7 +65,7 @@
         "Regions": {
             "Description": "AWS regions to query, all means all AWS regions, or separate  multiple regions by space",
             "Type": "String",
-            "Default": "ap-southeast-2"
+            "Default": "all"
         },
         "RDSSupport": {
             "Description": "Support RDS instances",
@@ -78,8 +78,7 @@
         },
         "S3BucketName": {
             "Description": "S3 bucket name in which  lambda zip code is",
-            "Type": "String",
-            "Default": "dcp-install"
+            "Type": "String"
         }
     },
     "Mappings": {
