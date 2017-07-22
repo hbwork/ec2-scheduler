@@ -94,6 +94,7 @@ The EC2/RDS Scheduler will read tag values, looking for four possible custom par
 <start time>; <stop time>; <time zone>; <active days(s)>
 
 You can sepereate each values with a semicolon or colon. The following table gives acceptable input values for each field
+
 |Tag Value Field|Acceptable input values|Scheduled Action/Note |
 | ------ | ------ | ------ | 
 |<start time> | none | No action|
@@ -114,6 +115,7 @@ You can sepereate each values with a semicolon or colon. The following table giv
 # Example Tag Value
 
 The following table gives examples of different tag values and the resulting Scheduler actions
+
 |Example Tag Value|EC2 Scheduler Action|
 |------ | ------|
 |24x7 | start RDS/EC2 instance at any time if it is stopped|
