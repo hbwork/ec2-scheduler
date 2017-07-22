@@ -56,7 +56,7 @@
         "CloudWatchMetrics": {
             "Description": "Create CloudWatch Custom Metric",
             "Type": "String",
-            "Default": "Enabled",
+            "Default": "Disabled",
             "AllowedValues": [
                 "Enabled",
                 "Disabled"

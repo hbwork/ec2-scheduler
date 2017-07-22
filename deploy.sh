@@ -70,9 +70,11 @@ ProfileName=${2:-default}
 StackName="ec2-scheduler"
 DefaultTimeZone="Australia/Melbourne"
 RDSSupport="Yes"
-Schedule="5minutes"
-#Regions="ap-southeast-2"
-Regions='ap-southeast-2 ap-southeast-1'
+Schedule="5minutes" 
+#Regions='ap-southeast-2 ap-southeast-1'
+Regions="ap-southeast-2"
+
+# End of Customzation 
 
 rm -f *.zip
 
@@ -130,7 +132,7 @@ then
     	      ParameterKey=Schedule,ParameterValue=${Schedule} \
     	      ParameterKey=S3BucketName,ParameterValue=${S3BucketName} \
     	      ParameterKey=Regions,ParameterValue="${Regions}"
-sleep 10
+    sleep 10
 
     ChangeSetStatus=$(aws cloudformation describe-change-set  \
     	  --profile ${ProfileName} \
