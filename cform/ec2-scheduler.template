@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Customized EC2 Scheduler: This template installs an opt-in version of the EC2 Scheduler for automatically starting and stopping EC2 instances.",
+    "Description": "Updated EC2/RDS Scheduler: This template installs an updated version of AWS EC2 Scheduler for automatically starting and stopping EC2/RDS instances.",
     "Parameters": {
         "Schedule": {
             "Description": "Schedule for CWE Scheduled Expression",
