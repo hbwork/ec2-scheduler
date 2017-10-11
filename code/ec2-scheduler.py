@@ -131,7 +131,18 @@ def scheduler_action(tagValue):
 
     isActiveDay = False
 
-    if daysActive == "all":
+    # 24x5 support 
+    if startTime  == '24x5':
+       if nowDay == 'mon':
+           startTime = defaultStartTime
+           stopTime = 'none'
+           isActiveDay = True
+       elif nowDay == 'fri':
+           isActiveDay = True
+           startTime = 'none'
+           stopTime = defaultStopTime
+
+    elif daysActive == "all":
         isActiveDay = True
     elif daysActive == "weekdays":
         if (nowDay in weekdays):

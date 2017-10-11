@@ -8,10 +8,12 @@ An improved version of AWS EC2 Scheduler](https://aws.amazon.com/answers/ec2-sch
   -  Customzied Timezone support (pytz)
   -  Customzied AWS Region(s)
   -  Support start/stop EC2/RDS based on month day, nth weekdays, weekdays
+  -  24x7, 24x5 scheduled tag support
   -  Default setting specified in AWS CloudWatch Event Target Input instead of DynamoDB table
   -  (bug fix) Support EC2 instance with encrypted EBS volumes
 
 # Code 
+
 ## Cloudformation templates
 - cform/ec2-scheduler.template
 
@@ -39,21 +41,25 @@ You can deploy EC2/RDS scheduler either using AWS CLI (Linux) or from AWS Manage
 
 ## AWS CLI
 
-- Update stack parameters in deploy.sh
+- Update stack parameters in deploy.sh 
 
-      #Stack Deploy Parameters
       StackName="ec2-scheduler"
       DefaultTimeZone="Australia/Melbourne"
       RDSSupport="Yes"
       Schedule="5minutes"
       #Regions='ap-southeast-2 ap-southeast-1'
       Regions="ap-southeast-2"
+
 - Deploy the stack using Shell script
+
 ```sh
+
 ./deploy.sh s3_bucket_name [profilename]
-````
+
+```
 
 # Notes
+
 ## Dependency
 - pytz : https://pypi.python.org/pypi/pytz
     
@@ -61,6 +67,7 @@ You can deploy EC2/RDS scheduler either using AWS CLI (Linux) or from AWS Manage
 Please install boto3  locally if you experience blow error message which is caused by the outdated boto3 library provided by AWS lambda.
 - 'RDS' object has no attribute 'start_db_instance'
 -  'RDS' object has no attribute 'stop_db_instance'
+
 ```sh
     cd code
     pip install boto3 -t .
@@ -68,17 +75,22 @@ Please install boto3  locally if you experience blow error message which is caus
     zip -r -9 ../ec2-scheduler.zip *
     aws s3 cp ../ec2-scheduler.zip s3bucket
 ````
+
+
 ## Customzied TimeZone Support
+
 Please refer to https://pypi.python.org/pypi/pytz for valid timezone (same as timezone supported by Amazon Linux).
 The easiest way is to check folder /usr/share/zoneinfo of Amazon Linux, for example:
+
 ```sh
     cd /usr/share/zoneinfo
     find . -type f |sed s'/^\.\///'|grep Australia
     ....
     Australia/Melbourne
     ...
-````
-"Australia/Melbourne" is a valid timezone .
+```
+
+"Australia/Melbourne" is a valid timezone.
 
 ## IAM Role RDS Permissions
 AWS accounced RDS instance stop/stop support in June 1, 2017, as this file is wriiten, IAM role allow unstricted RDS API access "rds:*" because no AWS document states which RDS api applies to rds instance stop and start operations.
@@ -119,6 +131,8 @@ The following table gives examples of different tag values and the resulting Sch
 |Example Tag Value|EC2 Scheduler Action|
 |------ | ------|
 |24x7 | start RDS/EC2 instance at any time if it is stopped|
+|24x5 | start RDS/EC2 instance at DefaultStartTime on Monday, and stop at DefaultStopTime on Friday (DefaultTimeZone) |
+|24x5;;Australia/Adelaide; | start at DefaultStartTime on Monday, and stop DefaultStopTime on Friday (Australia/Adelaide timezone)|
 |none | No action|
 |default | The instance will start and stop on the default schedule|
 |true | The instance will start and stop on the default schedule|
@@ -142,7 +156,7 @@ The following table gives examples of different tag values and the resulting Sch
 - Initial version: AWS provided
 - Updated by:
 Eric Ho (eric.ho@datacom.com.au, hbwork@gmail.com, https://www.linkedin.com/in/hbwork/)
-Last update: July 22, 2017
+Last update: October 11, 2017
 
 ***
 
