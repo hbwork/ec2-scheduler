@@ -44,16 +44,20 @@ Changes:
 - cform/ec2-scheduler.template.json :
   Remove DynamoDB and add default parameters to CloudWatch rule event input
   IAM role - remove dynamoDB access and allow RDS access (to be customzied, allows rds:* for the moment)
-  Additional parameters: Regions, CustomRDSTagName
-  Lambda function: memorysize 256MB
+  Additional parameters: Regions, CustomRDSTagName, S3BucketName
+  Lambda function: memory size 256MB
 - code/ec2-scheduler.py: 
   Read default parameter from Cloudwatch event input
   customized AWS Region(s)
   startTime 24x7 - start instance at any time if it is stopped
   RDS instance support
   Re-structure python code 
-- script
+- deploy.sh
   Shell script to create/update CloudFormation stack (Jenkins Job script)
+
+Date: October 11,2017
+Changes:
+- Enhancement: 24x5 support - start EC2/RDS Instance at DefaultStartTime on Monday, and stop  EC2/RDS instance at DefaultStopTime on Friday
 
 Note about RDS support:
 - no CloudWatch Matrics
@@ -69,22 +73,4 @@ Note:
     weekday(case insensitive): mon, tue,wed,thu,fri,sat,sun 
     nthweek: 1 (first week in every month),2 (second) week, 3 (third week),4(fourth week)
 
-Customized Tags:
-  24x7 start RDS/EC2 instance at any time if it is stopped
-  none No action
-  0800;;;weekdays Start the instane at 08:00 (Default Timezone) in weekdays if it is not stopped.
-  ;1700;;weekdays Stop the instane at 17:00 (Default Timezone) in weekdays if it is running.
-  0800;1800;utc;all	The instance will start at 0800 hours and stop at 1800 hours on all days of the week.
-  0001;1800;Etc/GMT+1;Mon/1	The instance will start at 0001 hour and stop at 1800 hour (first Monday of every month, Etc/GMT+1 timezone)
-  1000;1700;utc;weekdays	The instance will start at 1000 hours and stop at 1700 hours Monday through Friday.
-  1030;1700;utc;mon,tue,fri	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday only.
-  1030;1700;utc;mon,tue,fri,1,3	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday or date 1,3 only.
-  1030;1700;utc;1	The instance will start at 1030 hours and stop at 1700 hours on date 1 only.
-  1030;1700;utc;01,fri	The instance will start at 1030 hours and stop at 1700 hours on date 1 and Friday only.
-  0815;1745;utc;wed,thu	The instance will start at 0815 hours and stop at 1745 hours on Wednesday and Thursday only.
-  none;1800;utc;weekdays	The instance stop at 1800 hours Monday through Friday. The instance will need to be started manually.
-  0800;none;utc;weekdays	The instance start at 0800 hours Monday through Friday. The instance will need to be stopped manually.
-  1030;1700;utc;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (utc TimeZone)
-  1030;1700;;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (Default TimeZone)
-  1030;1700;Australia/Sydney;mon,tue,fri,1,3,sat/1	The instance will start at 1030 hours and stop at 1700 hours on Monday, Tuesday, and Friday ,date 1,3 or the first Saturday in every month (Australia/Sydney TimeZone)
 
