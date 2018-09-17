@@ -100,10 +100,10 @@ URL:
     - https://aws.amazon.com/about-aws/whats-new/2017/06/amazon-rds-supports-stopping-and-starting-of-database-instances/
 
 # Applying Custom Parameters
-You can apply custom start and stop parameters to an EC2 or RDS instance which will orverwide the default values you set during initial deployment. To do this, mofidy the tag value to specify the alternative settings.
+You can apply custom start and stop parameters to an EC2 or RDS instance which will override the default values you set during initial deployment. To do this, modify the tag value to specify the alternative settings.
 
 The EC2/RDS Scheduler will read tag values, looking for four possible custom parameters in foloowing order: 
-<start time>; <stop time>; <time zone>; <active days(s)>
+<start time>; <stop time>; <time zone>; <active day(s)>
 
 You can sepereate each values with a semicolon or colon. The following table gives acceptable input values for each field
 
